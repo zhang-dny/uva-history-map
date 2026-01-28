@@ -4,20 +4,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { signIn } from "@/actions/auth"
+import { signUp } from "@/actions/auth"
 import { useState } from "react"
 import Link from "next/link"
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setError(null) 
-    setLoading(true) 
+    setError(null)
+    setLoading(true)
+    
     const formData = new FormData(e.currentTarget)
-    const result = await signIn(formData)
+    const result = await signUp(formData)
+    
     if (result?.error) {
       setError(result.error)
       setLoading(false)
@@ -27,9 +29,9 @@ export default function LoginPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Welcome Back</CardTitle>
+        <CardTitle>Create Account</CardTitle>
         <CardDescription>
-          Sign in to your UVA History Map account
+          Sign up for a UVA History Map admin account
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -61,17 +63,21 @@ export default function LoginPage() {
               placeholder="••••••••"
               required
               disabled={loading}
+              minLength={6}
             />
+            <p className="text-xs text-muted-foreground">
+              Must be at least 6 characters
+            </p>
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Creating account...' : 'Sign Up'}
           </Button>
 
           <div className="text-center text-sm text-muted-foreground">
-            Don't have an account?{' '}
-            <Link href="/signup" className="text-primary hover:underline">
-              Sign up
+            Already have an account?{' '}
+            <Link href="/login" className="text-primary hover:underline">
+              Sign in
             </Link>
           </div>
         </form>
