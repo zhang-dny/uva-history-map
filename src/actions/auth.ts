@@ -22,14 +22,10 @@ export async function signIn(formData: FormData) {
         return { error: error.message }
     } 
 
-    redirect('/dashboard')
+    redirect('/admin')
 }
 
-/**
- * Server Action: Sign up with email and password
- * 
- * Creates a new user account in Supabase Auth
- */
+
 export async function signUp(formData: FormData) {
     const email = formData.get('email') as string
     const password = formData.get('password') as string
@@ -54,7 +50,7 @@ export async function signUp(formData: FormData) {
     } 
 
     // Success! Redirect to dashboard
-    redirect('/dashboard')
+    redirect('/admin')
 }
 
 export async function signOut() {

@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"    
+import { signOut } from "@/actions/auth"
 
 export function Sidebar() {
     return (
-        <aside className="w-80 border-r bg-card h-screen overflow-y-auto">
+    <aside className="w-80 border-r bg-card h-screen flex flex-col">
       <div className="p-4 border-b">
         <h2 className="text-lg font-semibold">UVA History Map</h2>
         <p className="text-sm text-muted-foreground">
@@ -36,6 +37,13 @@ export function Sidebar() {
           </div>
         </div>
       </div>
+      <div className="p-4 border-t mt-auto">
+        <form action={signOut}>
+            <Button variant="outline" size="sm" className="w-full">
+                 Sign Out
+            </Button>
+        </form>
+    </div>
     </aside>
     )
 }

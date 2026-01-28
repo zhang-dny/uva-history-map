@@ -15,7 +15,7 @@ export default function HomePage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Button asChild className="w-full">
-              <Link href="/dashboard">View Map</Link>
+              <Link href="/map">View Map</Link>
             </Button>
             <Button asChild variant="outline" className="w-full">
               <Link href="/login">Admin Login</Link>
