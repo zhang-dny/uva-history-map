@@ -1,11 +1,15 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import ReactMapGL, { NavigationControl } from 'react-map-gl/maplibre'
+import ReactMapGL, { 
+  NavigationControl,
+  MapLayerMouseEvent,
+  ViewStateChangeEvent
+} from 'react-map-gl/maplibre'
 import { MAP_CONFIG, getMapStyle } from '@/lib/constants/map'
 import type { MapProps, MapViewport } from './types'
 import Link from 'next/link'
-import {Button} from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
 import 'maplibre-gl/dist/maplibre-gl.css'
 
@@ -27,13 +31,13 @@ export function Map({
     padding: { top: 0, bottom: 0, left: 0, right: 0 },
   })
 
-  const handleMove = useCallback((evt: any) => {
+  const handleMove = useCallback((evt: ViewStateChangeEvent) => {
     const newViewport = evt.viewState
     setViewport(newViewport)
     onViewportChange?.(newViewport)
   }, [onViewportChange])
 
-  const handleClick = useCallback((evt: any) => {
+  const handleClick = useCallback((evt: MapLayerMouseEvent) => {
     if (adminMode && onMapClick) {
       const { lng, lat } = evt.lngLat
       onMapClick({ longitude: lng, latitude: lat })
