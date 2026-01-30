@@ -20,7 +20,7 @@ export async function getBuildings(): Promise<BuildingWithCoordinates[]> {
 
   const { data, error } = await supabase.rpc('get_buildings_with_coordinates') as {
     data: BuildingWithCoordinates[] | null
-    error: any
+    error: Error | null  // ← Changed from 'any'
   }
   
   if (error) {
@@ -42,7 +42,7 @@ export async function getBuilding(id: number): Promise<BuildingWithCoordinates |
     building_id: id 
   }) as {
     data: BuildingWithCoordinates[] | null
-    error: any
+    error: Error | null  // ← Changed from 'any'
   }
   
   if (error || !data || data.length === 0) {
