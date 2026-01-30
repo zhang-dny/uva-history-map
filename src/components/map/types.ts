@@ -1,17 +1,14 @@
-
-import type { Building } from "@/types/database"
+import type { BuildingWithCoordinates } from "@/actions/buildings"
 import type { ViewState } from "react-map-gl/maplibre"
 
 /**
  * Map marker representing a building
  */
 export interface MapMarker {
-  id: string
-  position: {
-    longitude: number
-    latitude: number
-  }
-  building: Building
+  id: number
+  longitude: number
+  latitude: number
+  building: BuildingWithCoordinates
 }
 
 

@@ -1,11 +1,14 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+
 import ReactMapGL, { 
   NavigationControl,
   MapLayerMouseEvent,
-  ViewStateChangeEvent
+  ViewStateChangeEvent,
+  Marker
 } from 'react-map-gl/maplibre'
+
 import { MAP_CONFIG, getMapStyle } from '@/lib/constants/map'
 import type { MapProps, MapViewport } from './types'
 import Link from 'next/link'
@@ -57,6 +60,25 @@ export function Map({
         cursor={adminMode ? 'crosshair' : 'grab'}
       >
         <NavigationControl position="top-right" />
+        {markers.map((marker) => (
+            <Marker
+            key={marker.id}
+            longitude={marker.longitude}
+            latitude={marker.latitude}
+            onClick={(e) => {
+                e.originalEvent.stopPropagation()
+                onMarkerClick?.(marker)
+            }}
+            >
+                 <div className="cursor-pointer" onClick={(e) => {
+                    e.stopPropagation()
+                    console.log('Marker clicked:', marker.building.title)
+                    onMarkerClick?.(marker)
+                }}>
+                    <div className="w-6 h-6 bg-red-500 rounded-full border-2 border-white shadow-lg hover:scale-110 transition-transform" />
+                 </div>
+            </Marker>
+        ))}
       </ReactMapGL>
       
       {adminMode && (
