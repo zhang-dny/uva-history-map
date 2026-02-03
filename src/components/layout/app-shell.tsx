@@ -5,6 +5,7 @@ import { MapContainer } from "./map-container"
 import { getBuildings } from "@/actions/buildings"
 import { useState, useEffect } from "react"
 import type { BuildingWithCoordinates } from "@/actions/buildings"
+import { WelcomeBanner } from "@/app/(admin)/admin/WelcomeBanner"
 
 export function AppShell() {
   const [buildings, setBuildings] = useState<BuildingWithCoordinates[]>([])
@@ -29,6 +30,7 @@ export function AppShell() {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      <WelcomeBanner />
       <Sidebar />
       <MapContainer buildings={buildings} adminMode={true} />
     </div>
