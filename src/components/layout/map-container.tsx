@@ -8,6 +8,8 @@ interface MapContainerProps {
   showLoginButton?: boolean
   adminMode?: boolean
   onMarkerSelect?: (building: BuildingWithCoordinates) => void
+  selectedBuilding?: BuildingWithCoordinates | null
+  onClearSelection?: () => void
 }
 
 export function MapContainer({ 
@@ -15,6 +17,8 @@ export function MapContainer({
   showLoginButton = false,
   adminMode = false, 
   onMarkerSelect,
+  selectedBuilding = null, 
+  onClearSelection
 }: MapContainerProps) {
   // Convert buildings to markers
   const markers: MapMarker[] = buildings.map((building) => ({
@@ -31,6 +35,8 @@ export function MapContainer({
         showLoginButton={showLoginButton}
         adminMode={adminMode}
         onMarkerClick={(marker) => onMarkerSelect?.(marker.building)}
+        selectedBuildingId={selectedBuilding?.id ?? null}
+        onClearSelection={onClearSelection}
       />
     </div>
   )

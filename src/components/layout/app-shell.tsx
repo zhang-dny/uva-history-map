@@ -33,7 +33,12 @@ export function AppShell() {
     <div className="flex h-screen overflow-hidden">
       <WelcomeBanner />
       <Sidebar selectedBuilding={selectedBuilding} />
-      <MapContainer buildings={buildings} adminMode={true} onMarkerSelect={setSelectedBuilding} />
+      <MapContainer 
+      buildings={buildings} 
+      adminMode={true} 
+      onMarkerSelect={setSelectedBuilding}
+      selectedBuilding={selectedBuilding}
+      onClearSelection={()=> setSelectedBuilding(null)} />
     </div>
   )
 }

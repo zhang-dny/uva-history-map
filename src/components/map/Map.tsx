@@ -25,8 +25,9 @@ export function Map({
   onMapClick,
   onViewportChange,
   showLoginButton = false,
+  selectedBuildingId = null,
+  onClearSelection,
 }: MapProps) {
-  const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null)
 
   const [viewport, setViewport] = useState<MapViewport>({
     longitude: initialViewport?.longitude ?? MAP_CONFIG.UVA_CENTER.longitude,
@@ -36,6 +37,8 @@ export function Map({
     pitch: 0,
     padding: { top: 0, bottom: 0, left: 0, right: 0 },
   })
+  const selectedMarker = 
+    selectedBuildingId == null ? null : markers.find((m) => m.id === selectedBuildingId) ?? null
 
   const handleMove = useCallback((evt: ViewStateChangeEvent) => {
     const newViewport = evt.viewState
@@ -44,12 +47,12 @@ export function Map({
   }, [onViewportChange])
 
   const handleClick = useCallback((evt: MapLayerMouseEvent) => {
-    setSelectedMarker(null)
+    onClearSelection?.()
     if (adminMode && onMapClick) {
       const { lng, lat } = evt.lngLat
       onMapClick({ longitude: lng, latitude: lat })
     }
-  }, [adminMode, onMapClick])
+  }, [adminMode, onMapClick, onClearSelection])
 
   return (
     <div className="relative w-full h-full">
@@ -65,7 +68,7 @@ export function Map({
       >
         <NavigationControl position="top-right" />
         {markers.map((marker) => {
-          const isSelected = selectedMarker?.id === marker.id
+          const isSelected = selectedBuildingId === marker.id
           
           return (
             <Marker
@@ -79,7 +82,6 @@ export function Map({
                 onClick={(e) => {
                   e.stopPropagation()
                   console.log('Marker clicked:', marker.building.title)
-                  setSelectedMarker(marker)
                   onMarkerClick?.(marker)
                 }}
               >
@@ -100,15 +102,7 @@ export function Map({
           building={selectedMarker.building}
           longitude={selectedMarker.longitude}
           latitude={selectedMarker.latitude}
-          onClose={() => setSelectedMarker(null)}
-        />
-      )}
-      {selectedMarker && (
-        <MapPopup
-          building={selectedMarker.building}
-          longitude={selectedMarker.longitude}
-          latitude={selectedMarker.latitude}
-          onClose={() => setSelectedMarker(null)}
+          onClose={() => onClearSelection?.()}
         />
       )}
       </ReactMapGL>
@@ -122,7 +116,7 @@ export function Map({
         <div className="absolute top-4 right-16">
           <Link href="/login">
           <Button variant="outline" size="sm">
-            login in
+            Sign In
           </Button>
         </Link> 
         </div>

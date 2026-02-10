@@ -26,5 +26,6 @@ export interface MapProps {
   onMarkerClick?: (marker: MapMarker) => void
   onMapClick?: (coords: { longitude: number; latitude: number }) => void
   onViewportChange?: (viewport: MapViewport) => void
-
+  selectedBuildingId?: number | null
+  onClearSelection?: () => void
 }
