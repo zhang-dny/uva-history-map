@@ -10,6 +10,7 @@ import { WelcomeBanner } from "@/app/(admin)/admin/WelcomeBanner"
 export function AppShell() {
   const [buildings, setBuildings] = useState<BuildingWithCoordinates[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedBuilding, setSelectedBuilding] = useState<BuildingWithCoordinates|null>(null)
 
   useEffect(() => {
     getBuildings()
@@ -31,8 +32,8 @@ export function AppShell() {
   return (
     <div className="flex h-screen overflow-hidden">
       <WelcomeBanner />
-      <Sidebar />
-      <MapContainer buildings={buildings} adminMode={true} />
+      <Sidebar selectedBuilding={selectedBuilding} />
+      <MapContainer buildings={buildings} adminMode={true} onMarkerSelect={setSelectedBuilding} />
     </div>
   )
 }
