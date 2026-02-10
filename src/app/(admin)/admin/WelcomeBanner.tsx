@@ -1,17 +1,15 @@
 'use client'
  
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { X } from 'lucide-react'
 
 export function WelcomeBanner() {
-    const [isVisible, setIsVisible] = useState(false)
-
-    useEffect(() => {
+    // Fix #1: Initialize state directly instead of using useEffect
+    const [isVisible, setIsVisible] = useState(() => {
+        if (typeof window === 'undefined') return false
         const dismissed = localStorage.getItem('admin-welcome-dismissed')
-        if (!dismissed) {
-            setIsVisible(true)
-        }
-    }, [])
+        return !dismissed
+    })
 
     const handleDismiss = () => {
         localStorage.setItem('admin-welcome-dismissed', 'true')
@@ -27,7 +25,8 @@ export function WelcomeBanner() {
             🎓 Welcome to Admin Mode Dani!
           </h3>
           <p className="text-xs opacity-90">
-            You're now in historian mode! More features will be added soon.          </p>
+            {"You're now in historian mode! More features will be added soon."}
+          </p>
         </div>
         <button
           onClick={handleDismiss}
