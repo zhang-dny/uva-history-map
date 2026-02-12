@@ -99,7 +99,7 @@ export function Map({
     setViewport(newViewport)
     updateBoundsFromMap()
     onViewportChange?.(newViewport)
-  }, [onViewportChange])
+  }, [onViewportChange, updateBoundsFromMap])
 
   const handleClick = useCallback((evt: MapLayerMouseEvent) => {
     onClearSelection?.()
@@ -108,7 +108,19 @@ export function Map({
       onMapClick({ longitude: lng, latitude: lat })
     }
   }, [adminMode, onMapClick, onClearSelection])
-
+  const flyToCluster = useCallback (
+    (longitude: number, latitude: number, nextZoom: number) => {
+      const map = mapRef.current?.getMap()
+      if (!map) return
+      map.flyTo({
+        center: [longitude, latitude], 
+        zoom: nextZoom, 
+        speed: 0.9, 
+        curve: 1.25,
+        essential: true, 
+      })
+    } , []
+  ) 
   return (
     <div className="relative w-full h-full">
       <ReactMapGL
@@ -142,6 +154,7 @@ export function Map({
                   e.stopPropagation()
                   const zoomStep = item.pointCount >= 8 ? 2 : 1.5
                   const nextZoom = Math.min(viewport.zoom + zoomStep, MAP_CONFIG.MAX_ZOOM)
+                  flyToCluster(item.longitude, item.latitude, nextZoom)
 
                   const nextViewport = {
                     ...viewport, 
@@ -151,7 +164,7 @@ export function Map({
                   }
                   setViewport(nextViewport)
                   onViewportChange?.(nextViewport)
-                  
+
                   requestAnimationFrame(() => {
                     updateBoundsFromMap()
                   })
