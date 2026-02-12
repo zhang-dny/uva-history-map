@@ -3,14 +3,23 @@
 import { Sidebar } from "./sidebar"
 import { MapContainer } from "./map-container"
 import { getBuildings } from "@/actions/buildings"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import type { BuildingWithCoordinates } from "@/actions/buildings"
 import { WelcomeBanner } from "@/app/(admin)/admin/WelcomeBanner"
+import { useQueryState, parseAsInteger } from 'nuqs'
 
 export function AppShell() {
   const [buildings, setBuildings] = useState<BuildingWithCoordinates[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedBuilding, setSelectedBuilding] = useState<BuildingWithCoordinates|null>(null)
+  const [selectedId, setSelectedId] = useQueryState (
+    'id', 
+    parseAsInteger
+  )
+  
+  const selectedBuilding = useMemo(() => {
+    if (!selectedId || !buildings.length) return null
+    return buildings.find((b) => b.id === selectedId) ?? null
+  }, [selectedId, buildings])
 
   useEffect(() => {
     getBuildings()
@@ -36,9 +45,14 @@ export function AppShell() {
       <MapContainer 
       buildings={buildings} 
       adminMode={true} 
-      onMarkerSelect={setSelectedBuilding}
-      selectedBuilding={selectedBuilding}
-      onClearSelection={()=> setSelectedBuilding(null)} />
+      onMarkerSelect={(building) => {
+        setSelectedId(building.id)
+      }}
+
+      onClearSelection={()=> {
+        setSelectedId(null)
+      }}
+         />
     </div>
   )
 }
