@@ -27,7 +27,6 @@ export function MapContainer({
     latitude: building.latitude,
     building: building,
   }))
-  console.log('MapContainer markers:', markers.length)
   return (
     <div className="flex-1 relative">
       <Map 

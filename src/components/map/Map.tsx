@@ -18,6 +18,27 @@ import { Button } from '@/components/ui/button'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { MapPopup } from '@/app/map/MapPopup'
 
+function getClusterStyle(pointCount: number) {
+  if (pointCount >= 8) {
+    return {
+      size: 'h-14 w-14 text-sm',
+      tone: 'bg-red-600 hover:bg-red-700',
+    }
+  }
+
+  if (pointCount >= 4) {
+    return {
+      size: 'h-12 w-12 text-xs',
+      tone: 'bg-amber-600 hover:bg-amber-700',
+    }
+  }
+
+  return {
+    size: 'h-10 w-10 text-xs',
+    tone: 'bg-primary hover:bg-primary/90',
+  }
+}
+
 export function Map({
   initialViewport,
   markers = [],
@@ -105,6 +126,7 @@ export function Map({
         <NavigationControl position="top-right" />
         {clusteredItems.map((item) => {
           if (item.kind === 'cluster') {
+            const clusterStyle = getClusterStyle(item.pointCount)
             return (
               <Marker 
                 key={item.id}
@@ -114,10 +136,12 @@ export function Map({
               >
                 <button
                 type="button"
-                className="h-10 w-10 rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-lg border-2 border-white"
+                aria-label={`Zoom into cluster with ${item.pointCount} buildings`}
+                className={`${clusterStyle.size} ${clusterStyle.tone} rounded-full text-primary-foreground font-semibold shadow-lg border-2 border-white transition-colors`}
                 onClick={(e) => {
                   e.stopPropagation()
-                  const nextZoom = Math.min(viewport.zoom + 2, MAP_CONFIG.MAX_ZOOM)
+                  const zoomStep = item.pointCount >= 8 ? 2 : 1.5
+                  const nextZoom = Math.min(viewport.zoom + zoomStep, MAP_CONFIG.MAX_ZOOM)
 
                   const nextViewport = {
                     ...viewport, 
@@ -127,6 +151,10 @@ export function Map({
                   }
                   setViewport(nextViewport)
                   onViewportChange?.(nextViewport)
+                  
+                  requestAnimationFrame(() => {
+                    updateBoundsFromMap()
+                  })
                 }}
                 >
                   {item.pointCount} 
