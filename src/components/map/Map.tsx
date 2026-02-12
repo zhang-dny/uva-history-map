@@ -1,19 +1,20 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo, useRef} from 'react'
+import type { MapRef } from 'react-map-gl/maplibre'
+import { getClusteredMapItems } from '@/lib/map/clustering'
 
 import ReactMapGL, { 
   NavigationControl,
   MapLayerMouseEvent,
   ViewStateChangeEvent,
-  Marker
+  Marker, 
 } from 'react-map-gl/maplibre'
 
 import { MAP_CONFIG, getMapStyle } from '@/lib/constants/map'
-import type { MapMarker, MapProps, MapViewport } from './types'
+import type { MapProps, MapViewport } from './types'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { MapPopup } from '@/app/map/MapPopup'
 
@@ -28,7 +29,7 @@ export function Map({
   selectedBuildingId = null,
   onClearSelection,
 }: MapProps) {
-
+  const mapRef = useRef<MapRef | null>(null)
   const [viewport, setViewport] = useState<MapViewport>({
     longitude: initialViewport?.longitude ?? MAP_CONFIG.UVA_CENTER.longitude,
     latitude: initialViewport?.latitude ?? MAP_CONFIG.UVA_CENTER.latitude,
@@ -37,12 +38,45 @@ export function Map({
     pitch: 0,
     padding: { top: 0, bottom: 0, left: 0, right: 0 },
   })
+  const [bounds, setBounds] = useState<[number, number, number, number]>([
+    -180, -85, 180, 85, 
+  ])
+  const updateBoundsFromMap = useCallback(() => {
+    const b = mapRef.current?.getBounds() // read from map instance
+    if (!b) return
+  
+    const [[west, south], [east, north]] = b.toArray()
+    const nextBounds: [number, number, number, number] = [west, south, east, north]
+  
+    // avoid unnecessary state updates if bounds didn't actually change
+    setBounds((prev) => {
+      const isSame =
+        prev[0] === nextBounds[0] &&
+        prev[1] === nextBounds[1] &&
+        prev[2] === nextBounds[2] &&
+        prev[3] === nextBounds[3]
+      return isSame ? prev : nextBounds
+    })
+  }, [])
+  
+  const clusteredItems = useMemo(
+    () =>
+      getClusteredMapItems({
+        markers,
+        bounds,
+        zoom: viewport.zoom,
+      }),
+    [markers, bounds, viewport.zoom]
+  )
+
+  
   const selectedMarker = 
     selectedBuildingId == null ? null : markers.find((m) => m.id === selectedBuildingId) ?? null
 
   const handleMove = useCallback((evt: ViewStateChangeEvent) => {
     const newViewport = evt.viewState
     setViewport(newViewport)
+    updateBoundsFromMap()
     onViewportChange?.(newViewport)
   }, [onViewportChange])
 
@@ -57,8 +91,10 @@ export function Map({
   return (
     <div className="relative w-full h-full">
       <ReactMapGL
+      ref ={mapRef}
         {...viewport}
         onMove={handleMove}
+        onLoad={updateBoundsFromMap}
         onClick={handleClick}
         mapStyle={getMapStyle()}
         minZoom={MAP_CONFIG.MIN_ZOOM}
@@ -67,35 +103,71 @@ export function Map({
         cursor={adminMode ? 'crosshair' : 'grab'}
       >
         <NavigationControl position="top-right" />
-        {markers.map((marker) => {
-          const isSelected = selectedBuildingId === marker.id
-          
-          return (
-            <Marker
-              key={marker.id}
-              longitude={marker.longitude}
-              latitude={marker.latitude}
-              anchor="center"
-            >
-              <div 
-                className="cursor-pointer" 
+        {clusteredItems.map((item) => {
+          if (item.kind === 'cluster') {
+            return (
+              <Marker 
+                key={item.id}
+                longitude={item.longitude}
+                latitude={item.latitude}
+                anchor="center"
+              >
+                <button
+                type="button"
+                className="h-10 w-10 rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-lg border-2 border-white"
                 onClick={(e) => {
                   e.stopPropagation()
-                  console.log('Marker clicked:', marker.building.title)
-                  onMarkerClick?.(marker)
+                  const nextZoom = Math.min(viewport.zoom + 2, MAP_CONFIG.MAX_ZOOM)
+
+                  const nextViewport = {
+                    ...viewport, 
+                    longitude: item.longitude, 
+                    latitude: item.latitude, 
+                    zoom: nextZoom,
+                  }
+                  setViewport(nextViewport)
+                  onViewportChange?.(nextViewport)
                 }}
-              >
-                <div 
-                  className={`${
-                    isSelected 
-                      ? 'w-8 h-8 bg-blue-500'  // Selected: bigger and blue
-                      : 'w-6 h-6 bg-orange-500'    // Normal: smaller and red
-                  } rounded-full border-2 border-white shadow-lg hover:scale-110 transition-all`} 
-                />
-              </div>
+                >
+                  {item.pointCount} 
+                </button>
+
+              </Marker>
+            )
+          }
+          const isSelected = selectedBuildingId === item.id
+          return (
+            <Marker
+              key={`building-${item.id}`}
+              longitude = {item.longitude}
+              latitude = {item.latitude}
+              anchor = "center"
+            >
+              <div
+                  className="cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation() // don't trigger map click/clear selection
+                    onMarkerClick?.({
+                      id: item.id,
+                      longitude: item.longitude,
+                      latitude: item.latitude,
+                      building: item.building,
+                    }) // bubble selected building up to AppShell (single source of truth)
+                  }}
+                >
+                  <div
+                    className={`${
+                      isSelected
+                        ? 'w-8 h-8 bg-blue-500' // selected marker style
+                        : 'w-6 h-6 bg-orange-500' // default marker style
+                    } rounded-full border-2 border-white shadow-lg hover:scale-110 transition-all`}
+                  />
+                </div>
             </Marker>
           )
-        })}
+        })
+
+        }
         {/* Show popup when marker is selected */}
         {selectedMarker && (
         <MapPopup
