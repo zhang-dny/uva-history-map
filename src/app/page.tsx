@@ -23,8 +23,9 @@ export default function HomePage() {
           </div>
           
           <div className="text-sm text-muted-foreground">
-            <p>Phase 1: Authentication & Layouts ✅</p>
-            <p>Phase 2: Interactive Map (Coming Soon)</p>
+            <p>Phase 1: Authentication & Layouts (done)</p>
+            <p>Phase 2: Interactive Map (done)</p>
+            <p>Phase 3: Admin Features (in progress) </p>
           </div>
         </CardContent>
       </Card>

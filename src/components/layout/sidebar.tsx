@@ -12,6 +12,10 @@ interface SidebarProps {
   availableTags: string[]
   onSearchTextChange: (value: string) => void
   onSelectedTagChange: (tag: string | null) => void
+  isAddMode: boolean
+  pendingCoords: { longitude: number; latitude: number} | null
+  onStartAddMode:() => void
+  onCancelAddMode: () => void
 }
 
 
@@ -22,6 +26,10 @@ export function Sidebar({
   availableTags,
   onSearchTextChange,
   onSelectedTagChange,
+  isAddMode,
+  pendingCoords,
+  onStartAddMode,
+  onCancelAddMode,
 }: SidebarProps) {
     return (
     <aside className="w-80 border-r bg-card h-screen flex flex-col">
@@ -75,13 +83,43 @@ export function Sidebar({
             </div>
           </div>
       </div>
+      <div className="p-4 space-y-2">
+        <h3 className="text-sm font-medium"> Add Building</h3>
+        <Card className="p-3 space-y-3">
+          {!isAddMode ? (
+            <Button type= "button" onClick={onStartAddMode} className="w-full">
+              Start Add Mode
+            </Button>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Click on the map to choose a location.
+              </p>
+
+              {pendingCoords ? (
+                <div className="text-xs space-y-1">
+                  <p>Longitude: {pendingCoords.longitude.toFixed(6)}</p>
+                  <p>Latitude: {pendingCoords.latitude.toFixed(6)}</p>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground italic">No point selected yet.</p>
+              )}
+
+              <Button type="button" variant="outline" onClick={onCancelAddMode} className="w-full">
+                Cancel Add Mode
+              </Button>
+            </>
+          )
+        }
+        </Card>
+      </div>
       <div className="p-4 border-t mt-auto">
         <form action={signOut}>
             <Button variant="outline" size="sm" className="w-full">
                  Sign Out
             </Button>
         </form>
-    </div>
+      </div>
     </aside>
     )
 }

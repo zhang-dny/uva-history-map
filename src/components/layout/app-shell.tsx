@@ -8,7 +8,6 @@ import type { BuildingWithCoordinates } from "@/actions/buildings"
 import { WelcomeBanner } from "@/app/(admin)/admin/WelcomeBanner"
 import { useQueryState, parseAsInteger } from 'nuqs'
 import { filterBuildings, getAvailableTags } from "@/lib/map/filters"
-import { getActiveResourcesInfo } from "process"
 
 export function AppShell() {
   const [buildings, setBuildings] = useState<BuildingWithCoordinates[]>([])
@@ -24,11 +23,20 @@ export function AppShell() {
     return buildings.find((b) => b.id === selectedId) ?? null
   }, [selectedId, buildings])
   const availableTags = useMemo(() => getAvailableTags(buildings), [buildings])
-
   const filteredBuildings = useMemo(
   () => filterBuildings(buildings, { searchText, selectedTag }),
   [buildings, searchText, selectedTag]
   )
+
+  const [isAddMode, setIsAddMode] = useState(false)
+  const [pendingCoords, setPendingCoords] = useState<{ longitude: number; latitude: number } | null>(null)
+
+  const handleMapClickForAddMode = (coords: { longitude: number; latitude: number }) => {
+    if (!isAddMode) return
+    setPendingCoords(coords)
+    setSelectedId(null)
+  }
+
   useEffect(() => {
     getBuildings()
       .then(data => {
@@ -56,6 +64,18 @@ export function AppShell() {
         availableTags={availableTags}
         onSearchTextChange={setSearchText}
         onSelectedTagChange={setSelectedTag}
+        isAddMode={isAddMode}
+        pendingCoords={pendingCoords}
+        onStartAddMode={() => {
+          setIsAddMode(true)
+          setPendingCoords(null)
+        }}
+        onCancelAddMode={() => {
+          setIsAddMode(false)
+          setPendingCoords(null)
+        }
+        }
+
       />
       <MapContainer 
       buildings={filteredBuildings} 
@@ -67,6 +87,7 @@ export function AppShell() {
       onClearSelection={()=> {
         setSelectedId(null)
       }}
+      onMapClick={handleMapClickForAddMode}
          />
     </div>
   )

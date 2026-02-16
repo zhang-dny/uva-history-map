@@ -10,6 +10,7 @@ interface MapContainerProps {
   onMarkerSelect?: (building: BuildingWithCoordinates) => void
   selectedBuilding?: BuildingWithCoordinates | null
   onClearSelection?: () => void
+  onMapClick?: (coords: { longitude: number; latitude:number}) => void
 }
 
 export function MapContainer({ 
@@ -18,7 +19,8 @@ export function MapContainer({
   adminMode = false, 
   onMarkerSelect,
   selectedBuilding = null, 
-  onClearSelection
+  onClearSelection,
+  onMapClick
 }: MapContainerProps) {
   // Convert buildings to markers
   const markers: MapMarker[] = buildings.map((building) => ({
@@ -36,6 +38,7 @@ export function MapContainer({
         onMarkerClick={(marker) => onMarkerSelect?.(marker.building)}
         selectedBuildingId={selectedBuilding?.id ?? null}
         onClearSelection={onClearSelection}
+        onMapClick={onMapClick}
       />
     </div>
   )
