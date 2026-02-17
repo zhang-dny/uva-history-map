@@ -49,6 +49,7 @@ export function Map({
   showLoginButton = false,
   selectedBuildingId = null,
   onClearSelection,
+  pendingAddCoords = null,
 }: MapProps) {
   const mapRef = useRef<MapRef | null>(null)
   const [viewport, setViewport] = useState<MapViewport>({
@@ -209,6 +210,18 @@ export function Map({
         })
 
         }
+        {adminMode && pendingAddCoords && (
+            <Marker
+              longitude={pendingAddCoords.longitude}
+              latitude={pendingAddCoords.latitude}
+              anchor="center"
+            >
+              <div className="relative pointer-events-none-none:">
+                <div className="h-6 w-6 rounded-full border-2 border-white bg-emerald-500 shadow-lg" />
+                <div className="absolute inset-0 h-6 w-6 animate-ping rounded-full bg-emerald-400/60" />
+              </div>
+            </Marker>
+          )}
         {/* Show popup when marker is selected */}
         {selectedMarker && (
         <MapPopup

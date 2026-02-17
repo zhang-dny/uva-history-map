@@ -4,6 +4,7 @@ import { signOut } from "@/actions/auth"
 import type { BuildingWithCoordinates } from "@/actions/buildings"
 import { BuildingDetail } from "../shared/BuildingDetail"
 import { Input } from "@/components/ui/input"
+import { useState } from "react"
 
 interface SidebarProps {
   selectedBuilding: BuildingWithCoordinates | null
@@ -16,6 +17,13 @@ interface SidebarProps {
   pendingCoords: { longitude: number; latitude: number} | null
   onStartAddMode:() => void
   onCancelAddMode: () => void
+  isCreatingBuilding: boolean
+  createBuildingError: string | null
+  onSubmitCreateBuilding: (values: {
+    title: string
+    description: string
+    tagText: string
+  }) => void
 }
 
 
@@ -30,7 +38,22 @@ export function Sidebar({
   pendingCoords,
   onStartAddMode,
   onCancelAddMode,
+  isCreatingBuilding,
+  createBuildingError,
+  onSubmitCreateBuilding
+  
 }: SidebarProps) {
+  const [newTitle, setNewTitle] = useState("")
+  const [newDescription, setNewDescription] = useState("")
+  const [newTagsText, setNewTagsText] = useState("")
+
+  const handleSubmitCreate = () => {
+  onSubmitCreateBuilding({
+    title: newTitle,
+    description: newDescription,
+    tagText: newTagsText,
+  })
+}
     return (
     <aside className="w-80 border-r bg-card h-screen flex flex-col">
       <div className="p-4 border-b">
@@ -96,14 +119,39 @@ export function Sidebar({
                 Click on the map to choose a location.
               </p>
 
-              {pendingCoords ? (
-                <div className="text-xs space-y-1">
-                  <p>Longitude: {pendingCoords.longitude.toFixed(6)}</p>
-                  <p>Latitude: {pendingCoords.latitude.toFixed(6)}</p>
+              <div className="space-y-2">
+                  <Input
+                    placeholder="Building title"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                  />
+
+                  <textarea
+                    className="w-full min-h-20 rounded-md border bg-background px-3 py-2 text-sm"
+                    placeholder="Description (optional)"
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                  />
+
+                  <Input
+                    placeholder="Tags (comma separated)"
+                    value={newTagsText}
+                    onChange={(e) => setNewTagsText(e.target.value)}
+                  />
                 </div>
-              ) : (
-                <p className="text-xs text-muted-foreground italic">No point selected yet.</p>
-              )}
+
+                {createBuildingError && (
+                  <p className="text-xs text-red-600">{createBuildingError}</p>
+                )}
+
+                <Button
+                  type="button"
+                  className="w-full"
+                  disabled={isCreatingBuilding || !pendingCoords || newTitle.trim().length === 0}
+                  onClick={handleSubmitCreate}
+                >
+                  {isCreatingBuilding ? "Creating..." : "Create Building"}
+                </Button>
 
               <Button type="button" variant="outline" onClick={onCancelAddMode} className="w-full">
                 Cancel Add Mode

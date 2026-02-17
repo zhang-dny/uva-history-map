@@ -28,4 +28,5 @@ export interface MapProps {
   onViewportChange?: (viewport: MapViewport) => void
   selectedBuildingId?: number | null
   onClearSelection?: () => void
+  pendingAddCoords?: { longitude: number; latitude: number } | null
 }

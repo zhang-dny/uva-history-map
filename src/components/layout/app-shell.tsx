@@ -2,12 +2,13 @@
 
 import { Sidebar } from "./sidebar"
 import { MapContainer } from "./map-container"
-import { getBuildings } from "@/actions/buildings"
+import { getBuildings, createBuilding } from "@/actions/buildings"
 import { useState, useEffect, useMemo } from "react"
 import type { BuildingWithCoordinates } from "@/actions/buildings"
 import { WelcomeBanner } from "@/app/(admin)/admin/WelcomeBanner"
 import { useQueryState, parseAsInteger } from 'nuqs'
 import { filterBuildings, getAvailableTags } from "@/lib/map/filters"
+import { Tag } from "lucide-react"
 
 export function AppShell() {
   const [buildings, setBuildings] = useState<BuildingWithCoordinates[]>([])
@@ -28,14 +29,60 @@ export function AppShell() {
   [buildings, searchText, selectedTag]
   )
 
+
   const [isAddMode, setIsAddMode] = useState(false)
   const [pendingCoords, setPendingCoords] = useState<{ longitude: number; latitude: number } | null>(null)
-
   const handleMapClickForAddMode = (coords: { longitude: number; latitude: number }) => {
     if (!isAddMode) return
     setPendingCoords(coords)
     setSelectedId(null)
   }
+
+
+  const [isCreatingBuilding, setIsCreatingBuilding] = useState(false)
+  const [createBuildingError, setCreateBuildingError] = useState<string| null> (null) 
+  const handleCreateBuilding = async (values: {
+    title: string
+    description: string
+    tagText: string
+  }) => {
+    if (!pendingCoords) {
+      setCreateBuildingError("Please click a point on the map first")
+      return
+    }
+
+    setIsCreatingBuilding(true)
+    setCreateBuildingError(null)
+
+    const tags = values.tagText.split(",").map((tag) => tag.trim()).filter(Boolean)
+
+    const result = await createBuilding({
+      title: values.title,
+      description: values.description || null,
+      tags,
+      location: {
+        type: "Point",
+        coordinates: [pendingCoords.longitude, pendingCoords.latitude],
+      },
+    })
+
+    setIsCreatingBuilding(false)
+
+    if (!result.success) {
+      setCreateBuildingError(result.error)
+      return
+    }
+    const latest = await getBuildings()
+    setBuildings(latest)
+  
+    // Exit add mode + clear state
+    setIsAddMode(false)
+    setPendingCoords(null)
+    setCreateBuildingError(null)
+
+  }
+
+
 
   useEffect(() => {
     getBuildings()
@@ -74,7 +121,10 @@ export function AppShell() {
           setIsAddMode(false)
           setPendingCoords(null)
         }
-        }
+      }
+      isCreatingBuilding={isCreatingBuilding}
+      createBuildingError={createBuildingError}
+      onSubmitCreateBuilding={handleCreateBuilding}
 
       />
       <MapContainer 
@@ -88,6 +138,7 @@ export function AppShell() {
         setSelectedId(null)
       }}
       onMapClick={handleMapClickForAddMode}
+      pendingAddCoords={pendingCoords}
          />
     </div>
   )
