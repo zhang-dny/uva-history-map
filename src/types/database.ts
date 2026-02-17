@@ -1,10 +1,3 @@
-/**
- * Database Schema Types
- * 
- * These types represent the Supabase PostgreSQL schema.
- * After creating tables, regenerate with: npx supabase gen types typescript --project-id YOUR_PROJECT_ID
- */
-
 export type Json =
   | string
   | number
@@ -13,77 +6,236 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
       buildings: {
         Row: {
-          id: number
-          title: string
+          created_at: string | null
           description: string | null
-          location: unknown // PostGIS geography(POINT) - use [lng, lat] in GeoJSON format
+          id: number
+          location: unknown
           tags: string[] | null
-          created_at: string
-          updated_at: string
+          title: string
+          updated_at: string | null
         }
         Insert: {
-          id?: never // Auto-increment
-          title: string
+          created_at?: string | null
           description?: string | null
-          location: unknown // GeoJSON: { type: 'Point', coordinates: [lng, lat] }
+          id?: number
+          location: unknown
           tags?: string[] | null
-          created_at?: string
-          updated_at?: string
+          title: string
+          updated_at?: string | null
         }
         Update: {
-          id?: never
-          title?: string
+          created_at?: string | null
           description?: string | null
+          id?: number
           location?: unknown
           tags?: string[] | null
-          updated_at?: string
+          title?: string
+          updated_at?: string | null
         }
+        Relationships: []
       }
       images: {
         Row: {
-          id: number
           building_id: number
-          url: string
           caption: string | null
-          created_at: string
+          created_at: string | null
+          id: number
+          url: string
         }
         Insert: {
-          id?: never
           building_id: number
-          url: string
           caption?: string | null
-          created_at?: string
+          created_at?: string | null
+          id?: number
+          url: string
         }
         Update: {
-          id?: never
           building_id?: number
-          url?: string
           caption?: string | null
+          created_at?: string | null
+          id?: number
+          url?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "images_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_building_by_id: {
+        Args: { building_id: number }
+        Returns: {
+          created_at: string
+          description: string
+          id: number
+          latitude: number
+          longitude: number
+          tags: string[]
+          title: string
+          updated_at: string
+        }[]
+      }
+      get_buildings_with_coordinates: {
+        Args: never
+        Returns: {
+          created_at: string
+          description: string
+          id: number
+          latitude: number
+          longitude: number
+          tags: string[]
+          title: string
+          updated_at: string
+        }[]
+      }
     }
     Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
       [_ in never]: never
     }
   }
 }
 
-// Helper types for easier usage
-export type Building = Database['public']['Tables']['buildings']['Row']
-export type BuildingInsert = Database['public']['Tables']['buildings']['Insert']
-export type BuildingUpdate = Database['public']['Tables']['buildings']['Update']
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-export type Image = Database['public']['Tables']['images']['Row']
-export type ImageInsert = Database['public']['Tables']['images']['Insert']
-export type ImageUpdate = Database['public']['Tables']['images']['Update']
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
