@@ -67,13 +67,15 @@ export default function LoginPage() {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
-
-          <div className="text-center text-sm text-muted-foreground">
+          
+          /* 
+          {/* <div className="text-center text-sm text-muted-foreground">
           {"Don't have an account? "}
             <Link href="/signup" className="text-primary hover:underline">
               Sign up
             </Link>
-          </div>
+          </div> */}
+          */
         </form>
       </CardContent>
     </Card>
