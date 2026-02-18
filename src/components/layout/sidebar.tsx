@@ -168,7 +168,7 @@ export function Sidebar({
                 {createBuildingError && (
                   <p className="text-xs text-red-600">{createBuildingError}</p>
                 )}
-
+              <div className="space-y-2">
                 <Button
                   type="button"
                   className="w-full"
@@ -177,10 +177,10 @@ export function Sidebar({
                 >
                   {isCreatingBuilding ? "Creating..." : "Create Building"}
                 </Button>
-
-              <Button type="button" variant="outline" onClick={onCancelAddMode} className="w-full">
-                Cancel Add Mode
-              </Button>
+                <Button type="button" variant="outline" onClick={onCancelAddMode} className="w-full">
+                  Cancel Add Mode
+                </Button>
+                </div>
             </>
           )
         }

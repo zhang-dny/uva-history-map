@@ -5,6 +5,8 @@ import type { Tables } from '@/types/database'
 import { createBuildingSchema } from '@/lib/validations/building'
 import type { CreateBuildingInput } from '@/lib/validations/building'
 
+
+
 type Building = Tables<'buildings'>
 
 /**
@@ -96,4 +98,26 @@ export async function createBuilding(input: CreateBuildingInput): Promise<Create
 
   return { success: true, buildingId: insertedRow.id}
 
+}
+
+
+type DeleteBuildingResult = 
+| {success: true; deletedID: number}
+| {success: false; errorMessage: string}
+
+export async function deleteBuilding(id: number): Promise<DeleteBuildingResult>  {
+  const supabase = await createClient()
+  if (!Number.isInteger(id) || id <= 0) {
+    console.error('Invalid Building Id')
+    return { success: false, errorMessage: 'Error deleting building, invalid id' }
+  }
+
+  const {data, error} = await supabase
+    .from('buildings').delete().eq('id', id).select('id').single()
+
+  if (error) {
+    console.error('error deleting building:', error)
+    return {success: false, errorMessage: 'error deleting building'}
+  }
+  return {success: true, deletedID: data.id}
 }

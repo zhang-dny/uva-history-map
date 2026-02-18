@@ -2,7 +2,7 @@
 
 import { Sidebar } from "./sidebar"
 import { MapContainer } from "./map-container"
-import { getBuildings, createBuilding } from "@/actions/buildings"
+import { getBuildings, createBuilding, deleteBuilding } from "@/actions/buildings"
 import { useState, useEffect, useMemo } from "react"
 import type { BuildingWithCoordinates } from "@/actions/buildings"
 import { WelcomeBanner } from "@/app/(admin)/admin/WelcomeBanner"
@@ -83,7 +83,32 @@ export function AppShell() {
 
   }
 
+  const [isDeletingBuilding, setIsDeletingBuilding] = useState(false)
+  const [deleteBuildingError, setDeleteBuildingError] = useState<string|null> (null)
+  const handleDeleteBuilding = async () => {
 
+    if(!selectedBuilding) return
+
+    const confirmed = window.confirm(`Delete "${selectedBuilding.title}"?`)
+    if (!confirmed) return
+
+
+    setIsDeletingBuilding(true)
+    setDeleteBuildingError(null)
+
+    const result = await deleteBuilding(selectedBuilding.id)
+
+    setIsDeletingBuilding(false)
+
+    if(!result.success) {
+      setDeleteBuildingError(result.errorMessage)
+      return
+    }
+
+    const latest = await getBuildings()
+    setBuildings(latest)
+    setSelectedId(null)
+  }
 
   useEffect(() => {
     getBuildings()
@@ -111,6 +136,7 @@ export function AppShell() {
         adminMode={true} 
         onMarkerSelect={(building) => {
           setSelectedId(building.id)
+          setDeleteBuildingError(null)
         }}
 
         onClearSelection={()=> {
@@ -175,10 +201,30 @@ export function AppShell() {
           >
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Building Details</h2>
-              <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedId(null)}>
-                Close
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  disabled={isDeletingBuilding}
+                  onClick={handleDeleteBuilding}
+                >
+                  {isDeletingBuilding ? "Deleting..." : "Delete"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={isDeletingBuilding}
+                  onClick={() => setSelectedId(null)}
+                >
+                  Close
+                </Button>
+              </div>
             </div>
+            {deleteBuildingError && (
+              <p className="mb-3 text-sm text-red-600">{deleteBuildingError}</p>
+            )}
             <div className="space-y-4">
               <BuildingDetail building={selectedBuilding} />
             </div>
