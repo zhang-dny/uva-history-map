@@ -4,12 +4,6 @@ import {useState, useEffect, useMemo} from 'react'
 import { getBuildings } from "@/actions/buildings"
 import type { BuildingWithCoordinates } from "@/actions/buildings"
 import { useQueryState, parseAsInteger } from 'nuqs'
-import {
-  Sheet,
-  SheetContent, 
-  SheetHeader,
-  SheetTitle
-} from "@/components/ui/sheet"
 import { BuildingDetail } from "@/components/shared/BuildingDetail"
 import { filterBuildings, getAvailableTags } from "@/lib/map/filters"
 import { Input } from "@/components/ui/input"
@@ -93,16 +87,27 @@ export default function PublicMapClient() {
       onClearSelection={() => setSelectedId(null)}
        />
 
-       <Sheet open={selectedBuilding !== null} onOpenChange={(open) => {if (!open) setSelectedId(null)}}>
-       <SheetContent>
-          <SheetHeader>
-            <SheetTitle>Building Details</SheetTitle>
-          </SheetHeader>
-          <div className="mt-4 space-y-4">
-            <BuildingDetail building={selectedBuilding} />
+      {selectedBuilding && (
+        <div
+          className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setSelectedId(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-lg border bg-background p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Building Details</h2>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedId(null)}>
+                Close
+              </Button>
+            </div>
+            <div className="space-y-4">
+              <BuildingDetail building={selectedBuilding} />
+            </div>
           </div>
-        </SheetContent>
-       </Sheet>
+        </div>
+      )}
     </div>
   )
 }

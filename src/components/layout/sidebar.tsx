@@ -73,7 +73,7 @@ export function Sidebar({
   }
 
   return (
-    <aside className="w-80 border-r bg-card h-screen flex flex-col">
+    <aside className="h-full w-80 border-r bg-card flex flex-col overflow-hidden">
       <div className="p-4 border-b">
         <h2 className="text-lg font-semibold">UVA History Map</h2>
         <p className="text-sm text-muted-foreground">
@@ -81,7 +81,7 @@ export function Sidebar({
         </p>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="space-y-2">
             <h3 className="text-sm font-medium">Filters</h3>
 
@@ -114,8 +114,7 @@ export function Sidebar({
               ))}
             </div>
           </div>
-      </div>
-      <div className="p-4 space-y-2">
+        <div className="space-y-2">
         <h3 className="text-sm font-medium">Add Building</h3>
         <Card className="p-3 space-y-3">
           {!isAddMode ? (
@@ -186,6 +185,7 @@ export function Sidebar({
           )
         }
         </Card>
+      </div>
       </div>
       <div className="p-4 border-t mt-auto">
         <form action={signOut}>
