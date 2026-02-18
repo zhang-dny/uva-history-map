@@ -1,13 +1,19 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"    
 import { signOut } from "@/actions/auth"
-import type { BuildingWithCoordinates } from "@/actions/buildings"
-import { BuildingDetail } from "../shared/BuildingDetail"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 
+const DEFAULT_TAG_OPTIONS = [
+  "Historic",
+  "Academic",
+  "Architecture",
+  "Memorial",
+  "Student Life",
+  "Arts & Culture",
+]
+
 interface SidebarProps {
-  selectedBuilding: BuildingWithCoordinates | null
   searchText: string
   selectedTag: string | null
   availableTags: string[]
@@ -22,13 +28,12 @@ interface SidebarProps {
   onSubmitCreateBuilding: (values: {
     title: string
     description: string
-    tagText: string
+    tags: string[]
   }) => void
 }
 
 
 export function Sidebar({
-  selectedBuilding,
   searchText,
   selectedTag,
   availableTags,
@@ -45,35 +50,39 @@ export function Sidebar({
 }: SidebarProps) {
   const [newTitle, setNewTitle] = useState("")
   const [newDescription, setNewDescription] = useState("")
-  const [newTagsText, setNewTagsText] = useState("")
+  const [selectedCreateTags, setSelectedCreateTags] = useState<string[]>([])
+
+  const createTagOptions = Array.from(
+    new Set([...DEFAULT_TAG_OPTIONS, ...availableTags])
+  )
+
+  const toggleCreateTag = (tag: string) => {
+    setSelectedCreateTags((prev) =>
+      prev.includes(tag)
+        ? prev.filter((t) => t !== tag)
+        : [...prev, tag]
+    )
+  }
 
   const handleSubmitCreate = () => {
-  onSubmitCreateBuilding({
-    title: newTitle,
-    description: newDescription,
-    tagText: newTagsText,
-  })
-}
-    return (
+    onSubmitCreateBuilding({
+      title: newTitle,
+      description: newDescription,
+      tags: selectedCreateTags,
+    })
+  }
+
+  return (
     <aside className="w-80 border-r bg-card h-screen flex flex-col">
       <div className="p-4 border-b">
         <h2 className="text-lg font-semibold">UVA History Map</h2>
         <p className="text-sm text-muted-foreground">
-          Explore historical buildings
+          Admin controls
         </p>
       </div>
 
       <div className="p-4 space-y-4">
         <div className="space-y-2">
-            <h3 className="text-sm font-medium">Building Details</h3>
-            <Card className="p-4 space-y-2">
-              <BuildingDetail 
-                building={selectedBuilding} 
-                emptyMessage="Click a marker to see details"
-              />
-            </Card>
-          </div>
-          <div className="space-y-2">
             <h3 className="text-sm font-medium">Filters</h3>
 
             <Input
@@ -107,7 +116,7 @@ export function Sidebar({
           </div>
       </div>
       <div className="p-4 space-y-2">
-        <h3 className="text-sm font-medium"> Add Building</h3>
+        <h3 className="text-sm font-medium">Add Building</h3>
         <Card className="p-3 space-y-3">
           {!isAddMode ? (
             <Button type= "button" onClick={onStartAddMode} className="w-full">
@@ -133,11 +142,28 @@ export function Sidebar({
                     onChange={(e) => setNewDescription(e.target.value)}
                   />
 
-                  <Input
-                    placeholder="Tags (comma separated)"
-                    value={newTagsText}
-                    onChange={(e) => setNewTagsText(e.target.value)}
-                  />
+                  <div className="rounded-md border bg-background p-2">
+                    <p className="mb-2 text-xs text-muted-foreground">Choose tags</p>
+                    <div className="flex flex-wrap gap-2">
+                      {createTagOptions.map((tag) => {
+                        const isActive = selectedCreateTags.includes(tag)
+                        return (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => toggleCreateTag(tag)}
+                            className={`rounded-md border px-2 py-1 text-xs transition-colors ${
+                              isActive
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border bg-muted/30 hover:bg-muted"
+                            }`}
+                          >
+                            {tag}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
                 </div>
 
                 {createBuildingError && (

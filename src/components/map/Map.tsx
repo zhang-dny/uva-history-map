@@ -223,14 +223,6 @@ export function Map({
             </Marker>
           )}
         {/* Show popup when marker is selected */}
-        {selectedMarker && (
-        <MapPopup
-          building={selectedMarker.building}
-          longitude={selectedMarker.longitude}
-          latitude={selectedMarker.latitude}
-          onClose={() => onClearSelection?.()}
-        />
-      )}
       </ReactMapGL>
       
       {adminMode && (

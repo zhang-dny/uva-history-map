@@ -8,7 +8,9 @@ import type { BuildingWithCoordinates } from "@/actions/buildings"
 import { WelcomeBanner } from "@/app/(admin)/admin/WelcomeBanner"
 import { useQueryState, parseAsInteger } from 'nuqs'
 import { filterBuildings, getAvailableTags } from "@/lib/map/filters"
-import { Tag } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { BuildingDetail } from "@/components/shared/BuildingDetail"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 export function AppShell() {
   const [buildings, setBuildings] = useState<BuildingWithCoordinates[]>([])
@@ -31,6 +33,7 @@ export function AppShell() {
 
 
   const [isAddMode, setIsAddMode] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [pendingCoords, setPendingCoords] = useState<{ longitude: number; latitude: number } | null>(null)
   const handleMapClickForAddMode = (coords: { longitude: number; latitude: number }) => {
     if (!isAddMode) return
@@ -44,7 +47,7 @@ export function AppShell() {
   const handleCreateBuilding = async (values: {
     title: string
     description: string
-    tagText: string
+    tags: string[]
   }) => {
     if (!pendingCoords) {
       setCreateBuildingError("Please click a point on the map first")
@@ -54,12 +57,10 @@ export function AppShell() {
     setIsCreatingBuilding(true)
     setCreateBuildingError(null)
 
-    const tags = values.tagText.split(",").map((tag) => tag.trim()).filter(Boolean)
-
     const result = await createBuilding({
       title: values.title,
       description: values.description || null,
-      tags,
+      tags: values.tags,
       location: {
         type: "Point",
         coordinates: [pendingCoords.longitude, pendingCoords.latitude],
@@ -102,44 +103,88 @@ export function AppShell() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="relative h-screen overflow-hidden">
       <WelcomeBanner />
-      <Sidebar
-        selectedBuilding={selectedBuilding}
-        searchText={searchText}
-        selectedTag={selectedTag}
-        availableTags={availableTags}
-        onSearchTextChange={setSearchText}
-        onSelectedTagChange={setSelectedTag}
-        isAddMode={isAddMode}
-        pendingCoords={pendingCoords}
-        onStartAddMode={() => {
-          setIsAddMode(true)
-          setPendingCoords(null)
+      <div className="absolute inset-0 flex">
+        <MapContainer 
+        buildings={filteredBuildings} 
+        adminMode={true} 
+        onMarkerSelect={(building) => {
+          setSelectedId(building.id)
         }}
-        onCancelAddMode={() => {
-          setIsAddMode(false)
-          setPendingCoords(null)
-        }
-      }
-      isCreatingBuilding={isCreatingBuilding}
-      createBuildingError={createBuildingError}
-      onSubmitCreateBuilding={handleCreateBuilding}
 
-      />
-      <MapContainer 
-      buildings={filteredBuildings} 
-      adminMode={true} 
-      onMarkerSelect={(building) => {
-        setSelectedId(building.id)
-      }}
+        onClearSelection={()=> {
+          setSelectedId(null)
+        }}
+        onMapClick={handleMapClickForAddMode}
+        pendingAddCoords={pendingCoords}
+        selectedBuilding={selectedBuilding}
+           />
+      </div>
 
-      onClearSelection={()=> {
-        setSelectedId(null)
-      }}
-      onMapClick={handleMapClickForAddMode}
-      pendingAddCoords={pendingCoords}
-         />
+      <div
+        className="absolute left-0 top-0 z-30 h-full transition-transform duration-300 ease-out"
+        style={{
+          transform: isSidebarCollapsed
+            ? "translateX(calc(-100%))"
+            : "translateX(0)",
+        }}
+      >
+        <div className="relative h-full">
+          <Sidebar
+            searchText={searchText}
+            selectedTag={selectedTag}
+            availableTags={availableTags}
+            onSearchTextChange={setSearchText}
+            onSelectedTagChange={setSelectedTag}
+            isAddMode={isAddMode}
+            pendingCoords={pendingCoords}
+            onStartAddMode={() => {
+              setIsAddMode(true)
+              setPendingCoords(null)
+            }}
+            onCancelAddMode={() => {
+              setIsAddMode(false)
+              setPendingCoords(null)
+            }}
+            isCreatingBuilding={isCreatingBuilding}
+            createBuildingError={createBuildingError}
+            onSubmitCreateBuilding={handleCreateBuilding}
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            className="absolute right-0 top-1/2 z-40 h-10 w-10 -translate-y-1/2 translate-x-full rounded-l-none border-l-0 shadow"
+            onClick={() => setIsSidebarCollapsed((prev) => !prev)}
+            aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isSidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+        </div>
+      </div>
+
+      {selectedBuilding && (
+        <div
+          className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setSelectedId(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-lg border bg-background p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Building Details</h2>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedId(null)}>
+                Close
+              </Button>
+            </div>
+            <div className="space-y-4">
+              <BuildingDetail building={selectedBuilding} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
