@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Tables } from '@/types/database'
 import { createBuildingSchema } from '@/lib/validations/building'
 import type { CreateBuildingInput } from '@/lib/validations/building'
+import { updateBuildingSchema } from '@/lib/validations/building'
 
 
 
@@ -98,6 +99,57 @@ export async function createBuilding(input: CreateBuildingInput): Promise<Create
 
   return { success: true, buildingId: insertedRow.id}
 
+}
+
+type UpdateBuildingResult =
+| { success: true; buildingId: number }
+| { success: false; error: string }
+
+export async function updateBuilding(
+  id: number,
+  input: { title: string; description: string | null; tags: string[] }
+): Promise<UpdateBuildingResult> {
+  const supabase = await createClient()
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return { success: false, error: 'Invalid building id' }
+  }
+
+  const parsed = updateBuildingSchema.safeParse({
+    title: input.title,
+    description: input.description,
+    tags: input.tags,
+  })
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? 'Invalid building data',
+    }
+  }
+
+  const title = input.title.trim()
+  if (!title) {
+    return { success: false, error: 'Title is required' }
+  }
+
+  const { data, error } = await supabase
+    .from('buildings')
+    .update({
+      title,
+      description: input.description ?? null,
+      tags: input.tags,
+    })
+    .eq('id', id)
+    .select('id')
+    .single()
+
+  if (error || !data) {
+    console.error('error updating building:', error)
+    return { success: false, error: 'Failed to update building' }
+  }
+
+  return { success: true, buildingId: data.id }
 }
 
 

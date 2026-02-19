@@ -13,5 +13,5 @@ export const MAP_CONFIG = {
 } as const
 
 export const getMapStyle = () => 
-  `https://api.maptiler.com/maps/streets-v2/style.json?key=${process.env.NEXT_PUBLIC_MAPTILER_API_KEY}`
+  `https://api.maptiler.com/maps/hybrid-v4/style.json?key=${process.env.NEXT_PUBLIC_MAPTILER_API_KEY}`
 
